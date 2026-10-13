@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>똥으로 그리세요</title>
+<meta property="og:title" content="똥으로 그리세요">
+<meta property="og:description" content="원하는 곳에 똥을 싸서 그림을 완성하세요.">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="src/styles/main.css?v=202610131430">
+</head>
+<body>
+<div class="app" id="app">
+  <!-- 도화지(월드) — 플레이·결과 모두 이 캔버스 하나 -->
+  <canvas id="stage"></canvas>
+
+  <!-- PLAY: 흰 화면 위 작은 글자만. 좌: 배변 횟수 / 우: 텍스트 버튼 3개 -->
+  <div class="hud" id="hud">
+    <span class="hud-count"><img class="poop-icon" alt="똥"><span id="hud-count">0</span></span>
+    <div class="hud-actions">
+      <button class="hud-btn" id="btn-undo" type="button" disabled>되돌리기</button>
+      <button class="hud-btn" id="btn-reset" type="button">처음부터</button>
+      <button class="hud-btn primary" id="btn-done" type="button" disabled>완성</button>
+    </div>
+  </div>
+
+  <!-- PLAY: 처음 한 번만 보이는 짧은 안내 -->
+  <p class="hint" id="hint"></p>
+
+  <!-- PLAY: 하단 조작. 터치: 화살표 4개 + 💩 싸기(터치 영역은 크고 보이는 건 작게) / PC: 키 안내 한 줄 -->
+  <div class="controls" id="controls">
+    <div class="dpad" id="dpad">
+      <button class="dpad-btn" data-dir="up" type="button" aria-label="위">▲</button>
+      <button class="dpad-btn" data-dir="left" type="button" aria-label="왼쪽">◀</button>
+      <button class="dpad-btn" data-dir="right" type="button" aria-label="오른쪽">▶</button>
+      <button class="dpad-btn" data-dir="down" type="button" aria-label="아래">▼</button>
+    </div>
+    <button class="poop-btn" id="btn-poop" type="button" aria-label="똥 싸기"><span class="poop-btn-label"><img class="poop-icon" alt="">싸기</span></button>
+  </div>
+
+  <!-- INTRO -->
+  <section class="screen" id="screen-intro">
+    <div class="screen-inner">
+      <img class="intro-img" id="intro-img" src="assets/main.png" alt="똥으로 만든 하트">
+      <h1 class="game-title">똥으로 그리세요</h1>
+      <button class="cta cta-fill" id="btn-start" type="button">시작하기</button>
+      <!-- 이벤트 안내: 하단 보조 정보 — 작은 글자 3줄만(카드·선·이모지·금액 강조 없음) -->
+      <div class="intro-event" id="intro-event">
+        <p class="event-kicker">10,000 FOLLOWERS EVENT</p>
+        <p class="event-prizes">사수 PICK 1명 5만원 · 추첨 10명 5천원</p>
+        <p class="event-foot">참여안내 <b><svg class="ig-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="3" width="18" height="18" rx="5" ry="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.3" cy="6.7" r="1.3" fill="currentColor"/></svg>@ccojik.dh</b></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESULT: 위 제목 / 가운데 작품(캔버스가 비쳐 보임) / 아래 기록·버튼 -->
+  <section class="screen" id="screen-result">
+    <div class="result-top"><h1 class="game-title">다 그렸어요.</h1></div>
+    <div class="result-middle" id="result-middle"></div>
+    <div class="result-bottom">
+      <p class="result-stats">
+        <span class="result-count"><img class="poop-icon" alt="똥"><span id="res-count">총 0번 쌌어요</span></span><br>
+        <span id="res-time">⏱ 0초 걸렸어요</span><br>
+        <span id="res-dist">🚶 0m 걸었어요</span>
+      </p>
+      <button class="cta" id="btn-save" type="button">작품 저장하기</button>
+      <button class="btn-text" id="btn-again" type="button">다시 그리기</button>
+    </div>
+  </section>
+
+  <!-- 확인창(처음부터 / 완성 / 다시 그리기 공용) -->
+  <div class="modal" id="modal">
+    <div class="modal-card">
+      <p class="modal-title" id="modal-title"></p>
+      <div class="modal-row">
+        <button class="modal-cancel" id="modal-cancel" type="button">취소</button>
+        <button class="modal-ok" id="modal-ok" type="button">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 저장 폴백: 다운로드가 막힌 환경에서 길게 눌러 저장 -->
+  <div class="modal" id="save-modal">
+    <div class="modal-card">
+      <img class="save-img" id="save-img" alt="완성된 작품">
+      <p class="save-hint" id="save-hint"></p>
+      <div class="modal-row">
+        <button class="modal-ok" id="save-close" type="button">닫기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="src/game/config.js?v=202610131430"></script>
+<script src="src/game/state.js?v=202610131430"></script>
+<script src="src/game/input.js?v=202610131430"></script>
+<script src="src/game/sfx.js?v=202610131430"></script>
+<script src="src/game/sprites-data.js?v=202610131430"></script>
+<script src="src/game/sprites.js?v=202610131430"></script>
+<script src="src/game/character.js?v=202610131430"></script>
+<script src="src/game/character-data.js?v=202610131430"></script>
+<script src="src/game/character-sprite.js?v=202610131430"></script>
+<script src="src/game/renderer.js?v=202610131430"></script>
+<script src="src/game/camera.js?v=202610131430"></script>
+<script src="src/game/world.js?v=202610131430"></script>
+<script src="src/game/export.js?v=202610131430"></script>
+<script src="src/main.js?v=202610131430"></script>
+</body>
+</html>

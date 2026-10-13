@@ -1,0 +1,432 @@
+/* 똥으로 그리세요 — UI는 기능만(흰 화면 위 작은 검정/회색 글자), 디테일은 캐릭터에.
+ * 카드·패널·박스·배경색 그룹·두꺼운 테두리·큰 검정 버튼 없음. 터치 영역은 크게, 보이는 건 작게. */
+:root {
+  --bg: #FFFFFF;
+  --text: #000000;
+  --muted: #777777;
+  --faint: #B5B5B5;
+  --border: #000000;
+  --soft-border: #E5E5E5;
+
+  --app-max-width: 430px;
+  --content-width: 320px;
+
+  --gap-title-content: 18px;
+  --gap-content-cta: 28px;
+  --screen-bottom: 28px;
+
+  --dpad-cell: 60px;             /* 화살표 하나의 터치 영역 */
+  --poop-hit-w: 160px;           /* 💩 싸기 터치 영역 */
+  --poop-hit-h: 88px;
+  --control-pad: 8px;
+  --control-bottom: 8px;
+}
+@media (max-height: 640px) {
+  :root {
+    --gap-title-content: 12px;
+    --gap-content-cta: 20px;
+    --screen-bottom: 20px;
+    --dpad-cell: 52px;
+    --poop-hit-w: 140px;
+    --poop-hit-h: 76px;
+  }
+}
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+  overscroll-behavior: none;
+}
+body {
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+button {
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+.app {
+  position: relative;
+  width: 100%;
+  max-width: var(--app-max-width);
+  height: 100vh;
+  height: 100dvh;
+  background: #fff;
+  overflow: hidden;
+}
+/* PC(마우스·넓은 화면): 9:16 프레임 제한을 풀고 브라우저 전체를 도화지로(가시 영역 확장, 늘리기 아님). 캔버스는 CSS 크기×DPR 로 동기화됨 */
+@media (pointer: fine) and (min-width: 600px) {
+  .app { max-width: none; }
+}
+#stage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ---------- PLAY: 상단 — 박스 없이 글자만 ---------- */
+/* HUD: 왼쪽 여백 · 카운트(화면 가운데) · 버튼(오른쪽) 3열 그리드.
+ * 좁은 화면(≤360)에선 버튼이 먼저 자리를 잡고 카운트는 남는 공간의 가운데로 밀린다(겹침 없음) */
+.hud {
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  display: none;
+  grid-template-columns: minmax(0, 1fr) auto minmax(auto, 1fr);
+  align-items: center;
+  padding: calc(6px + env(safe-area-inset-top)) 10px 0 10px;
+  pointer-events: none;
+  z-index: 5;
+}
+body[data-state="play"] .hud { display: grid; }
+.hud-count {
+  grid-column: 2;
+  justify-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+/* 글자 사이의 똥 아이콘 = 1번 에셋(main.js가 src를 넣는다). 글자 높이에 맞춰 작게 */
+.poop-icon {
+  display: inline-block;
+  width: 1.2em;
+  height: auto;
+  vertical-align: -0.2em;
+  margin-right: 0.3em;
+}
+.hud-count .poop-icon { margin-right: 0; }
+.hud-actions {
+  grid-column: 3;
+  justify-self: end;
+  display: flex;
+  gap: 2px;
+  pointer-events: auto;
+}
+.hud-btn {
+  height: 40px;                  /* 터치 영역 */
+  padding: 0 8px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+  white-space: nowrap;           /* 좁은 화면에서 그리드 열이 줄어도 글자가 줄바꿈되지 않게 — 대신 카운트가 왼쪽으로 밀린다 */
+}
+.hud-btn:active { color: var(--text); }
+.hud-btn.primary { color: var(--text); font-weight: 700; }
+.hud-btn[disabled] { opacity: 0.25; pointer-events: none; }
+
+/* ---------- PLAY: 하단 조작 ---------- */
+.controls {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  display: none;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0 var(--control-pad) calc(var(--control-bottom) + env(safe-area-inset-bottom));
+  pointer-events: none;
+  z-index: 5;
+}
+body[data-state="play"] .controls { display: flex; }
+.dpad {
+  display: none;
+  grid-template-columns: repeat(3, var(--dpad-cell));
+  grid-template-rows: repeat(3, var(--dpad-cell));
+  pointer-events: auto;
+  touch-action: none;
+}
+body.touch .dpad { display: grid; }
+.dpad-btn {
+  border: 0;
+  background: transparent;
+  color: var(--faint);
+  font-size: 20px;
+  padding: 0;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+.dpad-btn.on { color: var(--text); }
+.dpad-btn[data-dir="up"] { grid-column: 2; grid-row: 1; }
+.dpad-btn[data-dir="left"] { grid-column: 1; grid-row: 2; }
+.dpad-btn[data-dir="right"] { grid-column: 3; grid-row: 2; }
+.dpad-btn[data-dir="down"] { grid-column: 2; grid-row: 3; }
+
+/* 터치: 💩 싸기 — 터치 영역(버튼)은 크고 투명, 보이는 라벨은 작은 1px 테두리 */
+.poop-btn {
+  display: none;
+  pointer-events: auto;
+  width: var(--poop-hit-w);
+  height: var(--poop-hit-h);
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+body.touch .poop-btn { display: block; }
+.poop-btn-label {
+  display: inline-block;
+  height: 40px;
+  line-height: 38px;
+  padding: 0 18px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 700;
+}
+.poop-btn.on .poop-btn-label { background: #000; color: #fff; }
+
+/* ---------- PLAY: 첫 안내(아주 작게, 처음 한 번) ---------- */
+/* 안내 문구: 첫 똥을 쌀 때까지 고정 위치에 보인다(PC 는 SPACE 싸기 안내 포함).
+ * 카메라·시작 위치가 고정이라 화면 중앙 = 캐릭터 시작 발 위치 → 그 아래 44px. 캐릭터를 따라가지 않는다 */
+.hint {
+  position: absolute;
+  left: 50%; top: calc(50% + 44px);
+  width: max-content;
+  margin: 0;
+  transform: translate(-50%, 0);
+  text-align: center;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.6;
+  color: #9A9A9A;
+  white-space: pre-line;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s;
+  z-index: 4;
+}
+.hint.show { opacity: 1; }
+
+/* ---------- 화면 공통 (INTRO는 위:아래 1:1.2 — 가운데보다 살짝 위) ---------- */
+.screen {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 16px;
+  z-index: 10;
+  transition: opacity 0.16s ease, transform 0.16s ease;
+}
+.screen.active { display: flex; }
+.screen.entering { opacity: 0; transform: translateY(4px); }
+#screen-intro::before { content: ""; flex: 1 0 0; }
+#screen-intro::after { content: ""; flex: 1.2 0 0; }
+.screen-inner {
+  width: 100%;
+  max-width: var(--content-width);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+/* 인트로: 메인 사진(assets/main.png, 똥 하트) → 제목 → 검정 버튼이 한 덩어리, 그 아래 작은 이벤트 안내. 설명 문구·장식 없음 */
+.intro-img {
+  display: block;
+  width: 180px;   /* 2026-10-13: 240 → 180 (사용자 요청) */
+  max-width: 72vw;   /* 320px 폭에서도 양옆 여백 유지 */
+  height: auto;
+  margin-bottom: 18px;
+}
+.game-title {
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1.3;
+  margin: 0;
+  white-space: pre-line;
+}
+/* 주요 버튼: 작은 1px 테두리, 흰 바탕, 내용만큼의 폭 */
+.cta {
+  margin-top: var(--gap-content-cta);
+  height: 44px;
+  padding: 0 36px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: #fff;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.cta:active { background: #000; color: #fff; }
+.cta[disabled] { opacity: 0.4; pointer-events: none; }
+/* 인트로 시작 버튼: 검정 채움·흰 글자·200×48 직사각형. 라운드 최소, 그림자·그라데이션 없음(결과 화면 버튼은 그대로) */
+.cta-fill {
+  width: 200px;
+  padding: 0;
+  height: 48px;
+  border-color: #000;
+  background: #000;
+  color: #fff;
+}
+.cta-fill:active { background: #222; color: #fff; }
+/* 보조 버튼: 글자만 */
+.btn-text {
+  margin-top: 6px;
+  height: 40px;
+  padding: 0 16px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-text:active { color: var(--text); }
+/* 이벤트 안내: 하단 보조 정보 — 작은 글자 3줄, 전체 중앙. 카드·배경·선·이모지·금액 강조 없음 */
+.intro-event {
+  margin: 72px 0 0;   /* 버튼과 충분히 떨어뜨려 보조 정보로(2026-10-13: 40 → 72) */
+  text-align: center;
+}
+.event-kicker {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  line-height: 1.6;
+  color: #9A9A9A;
+}
+.event-prizes {
+  margin: 4px 0 0;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.6;
+  color: #666666;
+}
+.event-foot {
+  margin: 4px 0 0;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.6;
+  color: #9A9A9A;
+}
+.event-foot b { color: #333333; font-weight: 700; }
+/* 인스타그램 아이콘: 단색 인라인 SVG(글자색 따라감), 핸들 바로 앞 */
+.event-foot .ig-icon { width: 13px; height: 13px; vertical-align: -2px; margin: 0 3px 0 2px; }
+@media (max-height: 640px) {
+  .intro-event { margin-top: 48px; }
+}
+
+/* ---------- RESULT: 작품(캔버스)이 가운데 영역에 비쳐 보인다 ---------- */
+#screen-result {
+  background: transparent;
+  padding: 0;
+  justify-content: flex-start;
+}
+.result-top {
+  width: 100%;
+  padding: calc(18px + env(safe-area-inset-top)) 16px 0;
+  text-align: center;
+}
+.result-top .game-title { font-size: 24px; }
+.result-middle {
+  flex: 1 0 0;
+  width: 100%;
+  pointer-events: none;
+}
+.result-bottom {
+  width: 100%;
+  max-width: var(--content-width);
+  padding: 0 0 calc(var(--screen-bottom) + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.result-stats {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.75;
+  color: var(--muted);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.result-stats .result-count { /* "총 N번 쌌어요"가 핵심 재미 — 크기·굵기만 올린다 */
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
+}
+.result-bottom .cta { margin-top: 22px; }
+
+/* ---------- 확인창 ---------- */
+.modal {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 16px;
+}
+.modal.open { display: flex; }
+.modal-card {
+  width: 100%;
+  max-width: 280px;
+  background: #fff;
+  padding: 22px 20px 12px;
+  text-align: center;
+}
+.modal-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+.modal-row {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+.modal-row button {
+  flex: 1;
+  height: 40px;
+  border: 0;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.modal-cancel { color: var(--muted); }
+.modal-ok { color: var(--text); font-weight: 700; }
+.save-img {
+  display: block;
+  width: 100%;
+  max-height: 52vh;
+  max-height: 52dvh;
+  object-fit: contain;
+  border: 1px solid var(--soft-border);
+  background: #fff;
+}
+.save-hint {
+  margin: 10px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #9A9A9A;
+  white-space: pre-line;
+}
