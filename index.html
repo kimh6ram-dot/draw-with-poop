@@ -7,7 +7,7 @@
 <meta property="og:title" content="똥으로 그리세요">
 <meta property="og:description" content="똥을 싸고 상금을 받아가세요">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-<link rel="stylesheet" href="src/styles/main.css?v=202610131430">
+<link rel="stylesheet" href="src/styles/main.css?v=202610132225">
 </head>
 <body>
 <div class="app" id="app">
@@ -64,6 +64,7 @@
         <span id="res-dist">🚶 0m 걸었어요</span>
       </p>
       <button class="cta" id="btn-save" type="button">작품 저장하기</button>
+      <button class="cta cta-fill" id="btn-apply" type="button">응모하기</button>
       <button class="btn-text" id="btn-again" type="button">다시 그리기</button>
     </div>
   </section>
@@ -79,6 +80,21 @@
     </div>
   </div>
 
+  <!-- 응모 안내: 정적 페이지라 서버 발송 없음 → 작품 저장(기존 흐름) + 메일 앱 열기(받는 사람·제목·본문 미리 채움). 주소는 탭하면 복사 -->
+  <div class="modal" id="apply-modal">
+    <div class="modal-card">
+      <p class="modal-title">응모하기</p>
+      <p class="apply-text">작품을 저장한 뒤 메일에 첨부해 보내주세요
+인스타그램 아이디를 꼭 적어주세요</p>
+      <button class="apply-mail" id="apply-mail" type="button" title="탭하면 주소가 복사됩니다">kimh6ram@gmail.com</button>
+      <div class="modal-row">
+        <button class="modal-cancel" id="apply-save" type="button">작품 저장</button>
+        <button class="modal-ok" id="apply-send" type="button">메일 보내기</button>
+      </div>
+      <button class="btn-text apply-close" id="apply-close" type="button">닫기</button>
+    </div>
+  </div>
+
   <!-- 저장 폴백: 다운로드가 막힌 환경에서 길게 눌러 저장 -->
   <div class="modal" id="save-modal">
     <div class="modal-card">
@@ -91,20 +107,20 @@
   </div>
 </div>
 
-<script src="src/game/config.js?v=202610131430"></script>
-<script src="src/game/state.js?v=202610131430"></script>
-<script src="src/game/input.js?v=202610131430"></script>
-<script src="src/game/sfx.js?v=202610131430"></script>
-<script src="src/game/sprites-data.js?v=202610131430"></script>
-<script src="src/game/sprites.js?v=202610131430"></script>
-<script src="src/game/character.js?v=202610131430"></script>
-<script src="src/game/character-data.js?v=202610131430"></script>
-<script src="src/game/character-sprite.js?v=202610131430"></script>
-<script src="src/game/renderer.js?v=202610131430"></script>
-<script src="src/game/camera.js?v=202610131430"></script>
-<script src="src/game/world.js?v=202610131430"></script>
-<script src="src/game/export.js?v=202610131430"></script>
-<script src="src/main.js?v=202610131430"></script>
+<script src="src/game/config.js?v=202610132225"></script>
+<script src="src/game/state.js?v=202610132225"></script>
+<script src="src/game/input.js?v=202610132225"></script>
+<script src="src/game/sfx.js?v=202610132225"></script>
+<script src="src/game/sprites-data.js?v=202610132225"></script>
+<script src="src/game/sprites.js?v=202610132225"></script>
+<script src="src/game/character.js?v=202610132225"></script>
+<script src="src/game/character-data.js?v=202610132225"></script>
+<script src="src/game/character-sprite.js?v=202610132225"></script>
+<script src="src/game/renderer.js?v=202610132225"></script>
+<script src="src/game/camera.js?v=202610132225"></script>
+<script src="src/game/world.js?v=202610132225"></script>
+<script src="src/game/export.js?v=202610132225"></script>
+<script src="src/main.js?v=202610132225"></script>
 <script>window.SITE_ANALYTICS_PROJECT='draw-with-poop';</script>
 <script src="https://kimh6ram-dot.github.io/_parking/analytics.js"></script>
 </body>

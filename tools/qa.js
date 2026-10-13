@@ -538,6 +538,23 @@ async function mobileFlow(browser) {
   await page.screenshot({ path: path.join(SHOT, 'qa-05-save-390.png') });
   await page.tap('#save-close'); await sleep(100);
 
+  // 응모하기: 버튼(검정 채움, 저장 버튼 아래) → 안내 모달(주소 · 작품 저장 · 메일 보내기) · mailto 받는 사람/제목/본문 · 작품 저장은 기존 다운로드 흐름
+  const applyBtn = await page.evaluate(() => { const b = document.getElementById('btn-apply'); const cs = getComputedStyle(b); const r = b.getBoundingClientRect(); const sv = document.getElementById('btn-save').getBoundingClientRect(); return { text: b.textContent.trim(), bg: cs.backgroundColor, color: cs.color, below: r.top >= sv.bottom, w: r.width }; });
+  check('결과 화면 응모하기 버튼(검정 채움 · 저장 버튼 아래)', applyBtn.text === '응모하기' && applyBtn.bg === 'rgb(0, 0, 0)' && applyBtn.color === 'rgb(255, 255, 255)' && applyBtn.below, JSON.stringify(applyBtn));
+  await page.tap('#btn-apply'); await sleep(150);
+  const applyUi = await page.evaluate(() => ({ open: document.getElementById('apply-modal').classList.contains('open'), mail: document.getElementById('apply-mail').textContent.trim(), text: document.querySelector('.apply-text').innerText }));
+  check('응모 안내 모달: 메일 주소 표시 · 첨부/아이디 안내', applyUi.open && applyUi.mail === CFG.APPLY_EMAIL && applyUi.text.includes('첨부') && applyUi.text.includes('인스타그램 아이디'), applyUi.mail);
+  const mailto = await page.evaluate(() => PD_DEBUG.applyMailto());
+  const mailtoBody = decodeURIComponent(mailto.split('&body=')[1] || '');
+  check('메일 보내기 링크: 받는 사람 · 제목 · 본문(아이디 · 첨부 안내 · 기록)', mailto.startsWith('mailto:' + CFG.APPLY_EMAIL + '?subject=' + encodeURIComponent(CFG.APPLY_SUBJECT)) && mailtoBody.includes('인스타그램 아이디') && mailtoBody.includes('첨부') && mailtoBody.includes('번'), mailto.slice(0, 70));
+  const dl2 = page.waitForEvent('download', { timeout: 3000 }).catch(() => null);
+  await page.tap('#apply-save'); await sleep(600);
+  check('응모 모달의 작품 저장 → 다운로드 발생', !!(await dl2));
+  if (await page.$eval('#save-modal', el => el.classList.contains('open'))) { await page.tap('#save-close'); await sleep(100); }
+  await page.screenshot({ path: path.join(SHOT, 'qa-05b-apply-390.png') });
+  await page.tap('#apply-close'); await sleep(100);
+  check('응모 안내 모달 닫기', !(await page.$eval('#apply-modal', el => el.classList.contains('open'))));
+
   await page.tap('#btn-again'); await sleep(100); await page.tap('#modal-ok'); await sleep(200);
   s = await snap(page);
   check('다시 그리기 → 초기화', s.state === 'play' && s.n === 0 && s.stats.poops === 0 && s.stats.distance === 0 && s.dir === CFG.INITIAL_DIR);

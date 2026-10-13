@@ -123,6 +123,9 @@ PD.CONFIG = {
 
   TITLE: '똥으로 그리세요',
   HANDLE: '@ccojik.dh',
+  /* ---- 응모(이벤트): 정적 페이지라 서버 발송 없음. 메일 앱을 열어 받는 사람·제목·본문만 채운다 ---- */
+  APPLY_EMAIL: 'kimh6ram@gmail.com',
+  APPLY_SUBJECT: '[똥으로 그리세요] 응모',
   MAX_DT: 0.05,                  // 탭 전환 후 복귀 시 튐 방지(초)
 };
 

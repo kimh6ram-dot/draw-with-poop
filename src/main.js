@@ -207,6 +207,28 @@
   }
   btnSave.addEventListener('click', saveArtwork);
 
+  /* ---------- 응모하기: 안내 모달 → 작품 저장(기존 흐름) + 메일 보내기(mailto, 받는 사람·제목·본문 미리 채움). 주소 탭 = 복사 ---------- */
+  const applyModal = $('apply-modal'), applyMail = $('apply-mail');
+  applyMail.textContent = C.APPLY_EMAIL;
+  function applyMailto() {
+    const st = PD.world.snapshot().stats;
+    const body = '인스타그램 아이디: @\n\n저장한 작품 이미지를 첨부해 주세요.\n(총 ' + st.poops + '번 · ' + PD.export.formatTime(st.playTime) + ' · ' + PD.export.formatDistance(st.distance) + ')';
+    return 'mailto:' + C.APPLY_EMAIL + '?subject=' + encodeURIComponent(C.APPLY_SUBJECT) + '&body=' + encodeURIComponent(body);
+  }
+  let copiedTimer = 0;
+  $('btn-apply').addEventListener('click', () => { clearTimeout(copiedTimer); applyMail.textContent = C.APPLY_EMAIL; applyMail.classList.remove('copied'); applyModal.classList.add('open'); });
+  $('apply-close').addEventListener('click', () => applyModal.classList.remove('open'));
+  $('apply-save').addEventListener('click', saveArtwork);
+  $('apply-send').addEventListener('click', () => { window.location.href = applyMailto(); });
+  applyMail.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(C.APPLY_EMAIL);
+      applyMail.textContent = '복사됨'; applyMail.classList.add('copied');
+      clearTimeout(copiedTimer);
+      copiedTimer = setTimeout(() => { applyMail.textContent = C.APPLY_EMAIL; applyMail.classList.remove('copied'); }, 1200);
+    } catch (e) { /* 클립보드 불가(인앱 브라우저 등): 주소가 그대로 보이므로 손으로 입력 */ }
+  });
+
   PD.input.setHandlers({
     poop: () => { if (!modalOpen) PD.world.requestPoop(); },
     undo: () => { if (!modalOpen) PD.world.undo(); },
@@ -248,7 +270,7 @@
 
   window.PD_DEBUG = {
     get world() { return PD.world; }, get camera() { return PD.camera; }, get state() { return PD.state; },
-    startGame, restartDrawing, fitResult, saveArtwork, buildImage: () => PD.export.buildImage(PD.world.snapshot()),
+    startGame, restartDrawing, fitResult, saveArtwork, applyMailto, buildImage: () => PD.export.buildImage(PD.world.snapshot()),
     get modalOpen() { return modalOpen; }, get viewW() { return viewW; }, get viewH() { return viewH; }, updateArea,
   };
 })();

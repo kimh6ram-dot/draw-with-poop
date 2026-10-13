@@ -370,6 +370,31 @@ body.touch .poop-btn { display: block; }
   color: var(--text);
 }
 .result-bottom .cta { margin-top: 22px; }
+.result-bottom .cta + .cta { margin-top: 10px; width: 200px; padding: 0; }  /* 응모하기(검정 채움)는 저장 버튼 바로 아래 */
+
+/* ---------- 응모 안내 모달 ---------- */
+.apply-text {
+  margin: 10px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--muted);
+  white-space: pre-line;
+}
+.apply-mail {
+  display: block;
+  margin: 12px auto 0;
+  padding: 6px 12px;
+  border: 1px solid var(--soft-border);
+  border-radius: 2px;
+  background: transparent;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+}
+.apply-mail.copied { color: var(--muted); }
+.apply-close { margin-top: 0; width: 100%; }
 
 /* ---------- 확인창 ---------- */
 .modal {
