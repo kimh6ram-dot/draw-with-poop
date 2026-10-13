@@ -9,6 +9,7 @@
 - 폰 테스트: `node tools/serve.js` → 같은 와이파이의 폰에서 `http://<PC-IP>:8080` (방화벽에 Node 인바운드가 막혀 있으면 열어야 함).
 - QA: `node tools/qa.js` (playwright-core + 로컬 Chrome, 스크린샷 `screenshot/qa-*.png`, 배변 10프레임 `qa-motion-*.png`).
 - 배포(GitHub Pages 등) 전: `node tools/bump-version.js` (리소스 주소 `?v=` 갱신, BUILD_TEMPLATE R16).
+- **배포 주소**: https://kimh6ram-dot.github.io/draw-with-poop/ (저장소 `kimh6ram-dot/draw-with-poop`, Pages = main 브랜치 루트, 2026-10-13 첫 배포). 갱신 절차: bump-version → 커밋 → `git push origin main` → 약 1분 뒤 반영. `screenshot/` 은 .gitignore.
 
 ## 구조
 ```
