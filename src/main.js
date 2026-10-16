@@ -207,19 +207,20 @@
   }
   btnSave.addEventListener('click', saveArtwork);
 
-  /* ---------- 응모하기: 안내 모달 → 작품 저장(기존 흐름) + 메일 보내기(mailto, 받는 사람·제목·본문 미리 채움). 주소 탭 = 복사 ---------- */
+  /* ---------- 응모하기: 안내 모달 → 작품 저장(기존 흐름) + 메일 보내기(Gmail 웹, 받는 사람·제목·본문 미리 채움). 주소 탭 = 복사 ---------- */
   const applyModal = $('apply-modal'), applyMail = $('apply-mail');
   applyMail.textContent = C.APPLY_EMAIL;
   function applyMailto() {
     const st = PD.world.snapshot().stats;
     const body = '인스타그램 아이디: @\n\n저장한 작품 이미지를 첨부해 주세요.\n(총 ' + st.poops + '번 · ' + PD.export.formatTime(st.playTime) + ' · ' + PD.export.formatDistance(st.distance) + ')';
-    return 'mailto:' + C.APPLY_EMAIL + '?subject=' + encodeURIComponent(C.APPLY_SUBJECT) + '&body=' + encodeURIComponent(body);
+    // Gmail 웹 작성 화면(새 탭, 받는 사람·제목·본문 미리 채움). 메일 앱이 아니라 mail.google.com 이 열린다
+    return 'https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent(C.APPLY_EMAIL) + '&su=' + encodeURIComponent(C.APPLY_SUBJECT) + '&body=' + encodeURIComponent(body);
   }
   let copiedTimer = 0;
   $('btn-apply').addEventListener('click', () => { clearTimeout(copiedTimer); applyMail.textContent = C.APPLY_EMAIL; applyMail.classList.remove('copied'); applyModal.classList.add('open'); });
   $('apply-close').addEventListener('click', () => applyModal.classList.remove('open'));
   $('apply-save').addEventListener('click', saveArtwork);
-  $('apply-send').addEventListener('click', () => { window.location.href = applyMailto(); });
+  $('apply-send').addEventListener('click', () => { if (!window.open(applyMailto(), '_blank', 'noopener')) window.location.href = applyMailto(); }); // 팝업 차단 시 같은 탭으로
   applyMail.addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText(C.APPLY_EMAIL);

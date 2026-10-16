@@ -546,7 +546,7 @@ async function mobileFlow(browser) {
   check('응모 안내 모달: 메일 주소 표시 · 첨부/아이디 안내', applyUi.open && applyUi.mail === CFG.APPLY_EMAIL && applyUi.text.includes('첨부') && applyUi.text.includes('인스타그램 아이디'), applyUi.mail);
   const mailto = await page.evaluate(() => PD_DEBUG.applyMailto());
   const mailtoBody = decodeURIComponent(mailto.split('&body=')[1] || '');
-  check('메일 보내기 링크: 받는 사람 · 제목 · 본문(아이디 · 첨부 안내 · 기록)', mailto.startsWith('mailto:' + CFG.APPLY_EMAIL + '?subject=' + encodeURIComponent(CFG.APPLY_SUBJECT)) && mailtoBody.includes('인스타그램 아이디') && mailtoBody.includes('첨부') && mailtoBody.includes('번'), mailto.slice(0, 70));
+  check('메일 보내기 링크: 받는 사람 · 제목 · 본문(아이디 · 첨부 안내 · 기록)', mailto.startsWith('https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent(CFG.APPLY_EMAIL) + '&su=' + encodeURIComponent(CFG.APPLY_SUBJECT) + '&body=') && mailtoBody.includes('인스타그램 아이디') && mailtoBody.includes('첨부') && mailtoBody.includes('번'), mailto.slice(0, 70));
   const dl2 = page.waitForEvent('download', { timeout: 3000 }).catch(() => null);
   await page.tap('#apply-save'); await sleep(600);
   check('응모 모달의 작품 저장 → 다운로드 발생', !!(await dl2));
